@@ -80,6 +80,7 @@ jobs:
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: local/scan-candidate:${{ github.sha }}
+          version: v0.76.1
           format: table
           output: trivy-report.txt
           severity: ${{ inputs.trivy-report-severity }}
@@ -98,6 +99,7 @@ jobs:
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: local/scan-candidate:${{ github.sha }}
+          version: v0.76.1
           severity: ${{ inputs.trivy-fail-severity }}
           ignore-unfixed: true
           exit-code: "1"
