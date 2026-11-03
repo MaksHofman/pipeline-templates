@@ -7,7 +7,7 @@ on:
   workflow_call:
     inputs:
       image-name:
-        description: "Full image name, lowercase, e.g. ghcr.io/MaksHofman/streamforge-app"
+        description: "Full image name, lowercase, e.g. ghcr.io/my-user/streamforge-app"
         type: string
         required: true
       python-version:
@@ -77,7 +77,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Trivy report (never fails the build)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: local/scan-candidate:${{ github.sha }}
           format: table
@@ -95,7 +95,7 @@ jobs:
           retention-days: 30
 
       - name: Trivy gate (fails only on blocking severities)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: local/scan-candidate:${{ github.sha }}
           severity: ${{ inputs.trivy-fail-severity }}
