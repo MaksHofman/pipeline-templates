@@ -77,24 +77,28 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Trivy vulnerability scan (gate)
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: local/scan-candidate:${{ github.sha }}
-          format: table
-          severity: ${{ inputs.trivy-fail-severity }}
-          exit-code: 1
-          ignore-unfixed: true
-          vuln-type: os,library
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy:0.76.1 image \
+            --severity "${{ inputs.trivy-fail-severity }}" \
+            --exit-code 1 \
+            --ignore-unfixed \
+            --pkg-types os,library \
+            local/scan-candidate:${{ github.sha }}
 
       - name: Trivy scan (SARIF report)
         if: always()
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: local/scan-candidate:${{ github.sha }}
-          format: sarif
-          output: trivy-report.sarif
-          severity: ${{ inputs.trivy-report-severity }}
-          exit-code: 0
+        run: |
+          docker run --rm \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            -v "$PWD:/out" \
+            aquasec/trivy:0.76.1 image \
+            --format sarif \
+            --output /out/trivy-report.sarif \
+            --severity "${{ inputs.trivy-report-severity }}" \
+            --exit-code 0 \
+            local/scan-candidate:${{ github.sha }}
 
       - name: Upload SARIF as artifact
         if: always()
