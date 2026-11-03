@@ -76,33 +76,33 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Trivy report (never fails the build)
+      - name: Trivy vulnerability scan (gate)
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: local/scan-candidate:${{ github.sha }}
-          version: v0.76.1
           format: table
-          output: trivy-report.txt
-          severity: ${{ inputs.trivy-report-severity }}
+          severity: ${{ inputs.trivy-fail-severity }}
+          exit-code: 1
           ignore-unfixed: true
-          exit-code: "0"
+          vuln-type: os,library
 
-      - name: Upload Trivy report
+      - name: Trivy scan (SARIF report)
+        if: always()
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: local/scan-candidate:${{ github.sha }}
+          format: sarif
+          output: trivy-report.sarif
+          severity: ${{ inputs.trivy-report-severity }}
+          exit-code: 0
+
+      - name: Upload SARIF as artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: trivy-report
-          path: trivy-report.txt
+          name: trivy-sarif
+          path: trivy-report.sarif
           retention-days: 30
-
-      - name: Trivy gate (fails only on blocking severities)
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          image-ref: local/scan-candidate:${{ github.sha }}
-          version: v0.76.1
-          severity: ${{ inputs.trivy-fail-severity }}
-          ignore-unfixed: true
-          exit-code: "1"
 
       - name: Log in to GHCR
         if: inputs.push-image
